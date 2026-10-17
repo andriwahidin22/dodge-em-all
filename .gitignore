@@ -1,0 +1,20 @@
+# Godot 4
+.godot/
+/android/
+*.translation
+
+# Godot 3 (sisa dari demo)
+.import
+
+# Logs & build export
+logs/
+export/
+builds/
+*.exe
+*.pck
+*.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
