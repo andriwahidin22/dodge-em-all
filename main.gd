@@ -3,10 +3,42 @@ extends Node
 @export var mob_scene: PackedScene
 var score
 
+
+func _ready():
+	# Layar penuh: ukuran area permainan mengikuti layar perangkat (stretch aspect "expand"),
+	# jadi jalur spawn musuh dan posisi awal pemain dihitung ulang setiap ukuran layar berubah.
+	get_viewport().size_changed.connect(_update_play_area)
+	_update_play_area()
+
+
+func _update_play_area():
+	var area = get_viewport().get_visible_rect()
+	var left = area.position.x
+	var right = area.end.x
+	var top_edge = area.position.y
+	var bottom = area.end.y
+
+	# Jalur persegi mengelilingi layar, searah jarum jam (sama seperti jalur asli 480x720),
+	# supaya arah "tegak lurus jalur" tetap mengarah ke dalam layar.
+	var curve = Curve2D.new()
+	curve.add_point(Vector2(left, top_edge))
+	curve.add_point(Vector2(right, top_edge))
+	curve.add_point(Vector2(right, bottom))
+	curve.add_point(Vector2(left, bottom))
+	curve.add_point(Vector2(left, top_edge))
+	$MobPath.curve = curve
+
+	# Posisi awal pemain: tengah horizontal, 62,5% dari atas (sama seperti (240, 450) di layar 480x720).
+	$StartPosition.position = Vector2(left + area.size.x * 0.5, top_edge + area.size.y * 0.625)
+
 func game_over():
 	$ScoreTimer.stop()
 	$MobTimer.stop()
-	$HUD.show_game_over()
+	var new_record = score > SaveManager.highest_score
+	if new_record:
+		SaveManager.save_high_score(score)
+	$HUD.update_high_score(SaveManager.highest_score)
+	$HUD.show_game_over(new_record)
 	$Music.stop()
 	$DeathSound.play()
 
