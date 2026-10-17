@@ -11,11 +11,16 @@ config_version=5
 [application]
 
 config/name="Dodge 'em All"
-config/description="Survival arena shooter berbasis demo resmi Dodge the Creeps (Godot)."
+config/description="Game bertahan hidup 2D: hindari 10 wave musuh dengan 3 nyawa. Berbasis demo resmi Dodge the Creeps (Godot)."
+config/version="0.1"
 config/tags=PackedStringArray("2d")
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.webp"
+
+[autoload]
+
+SaveManager="*uid://b8hmv6kadmkpe"
 
 [display]
 
@@ -24,6 +29,9 @@ window/size/viewport_height=720
 window/size/window_width_override=480
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+window/size/mode.mobile=3
 
 [input]
 
@@ -66,7 +74,12 @@ start_game={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
