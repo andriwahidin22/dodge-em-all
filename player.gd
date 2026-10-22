@@ -39,24 +39,34 @@ func _process(delta):
 	else:
 		touch_pending = Vector2.ZERO
 
-	if velocity.length() > 0:
-		$AnimatedSprite2D.play()
-	else:
-		$AnimatedSprite2D.stop()
-
 	position += velocity * delta
 	# Batas layar dibaca ulang setiap frame karena ukuran layar bisa berubah (layar penuh / rotasi / resize window).
 	var area = get_viewport_rect()
 	position = position.clamp(area.position, area.end)
 
-	if velocity.x != 0:
-		$AnimatedSprite2D.animation = &"right"
-		$AnimatedSprite2D.flip_v = false
-		$Trail.rotation = 0
-		$AnimatedSprite2D.flip_h = velocity.x < 0
-	elif velocity.y != 0:
-		$AnimatedSprite2D.animation = &"up"
-		rotation = PI if velocity.y > 0 else 0
+	_update_animation(velocity)
+
+
+func _update_animation(velocity):
+	# Sprite alien hanya punya tampak samping (walk, menghadap kanan), tampak belakang (up),
+	# dan tampak depan (idle). Karakter TIDAK diputar seperti di demo asli,
+	# supaya alien tidak terbalik saat bergerak ke bawah.
+	var sprite = $AnimatedSprite2D
+	if velocity == Vector2.ZERO:
+		sprite.play(&"idle")
+		return
+
+	if velocity.y < 0 and abs(velocity.y) > abs(velocity.x):
+		# Dominan naik: tampak belakang, seperti sedang memanjat/menjauh.
+		sprite.play(&"up")
+		sprite.flip_h = false
+	else:
+		# Kiri, kanan, turun, dan diagonal: animasi jalan.
+		sprite.play(&"walk")
+		# Ambang 10 px/detik supaya getaran kecil jari saat menggeser vertikal
+		# tidak membuat alien berbalik arah terus-menerus.
+		if abs(velocity.x) > 10:
+			sprite.flip_h = velocity.x < 0
 
 
 func _unhandled_input(event):

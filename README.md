@@ -141,6 +141,9 @@ dodge-em-all/
   [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects)
   (lisensi di `LICENSE`, font Xolonium di `fonts/LICENSE.txt`). README asli
   demo disimpan di `README.original.md`.
-- Aset tambahan berlisensi CC0 *(tambahkan nama paket dan link setiap kali
-  memakai aset baru, misalnya dari [Kenney](https://kenney.nl/assets) atau
-  [OpenGameArt](https://opengameart.org))*.
+- Aset tambahan, semuanya berlisensi CC0:
+  - Ikon pause, resume, keluar, simpan: [Kenney Game Icons](https://opengameart.org/content/game-icons)
+  - Tombol dan panel menu: [Kenney UI Pack](https://kenney.nl/assets/ui-pack)
+  - Ikon nyawa: [25x25 Hearts](https://opengameart.org/content/25x25-hearts) oleh Min
+  - Pemain dan musuh: [Kenney Platformer Pack Redux](https://opengameart.org/content/platformer-pack-redux-360-assets)
+    dan [Kenney Platformer Art: More Animations & Enemies](https://opengameart.org/content/platformer-art-more-animations-and-enemies)

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bggkaprn62fwm"]
 
 [ext_resource type="Script" uid="uid://c4wt6ace7hycd" path="res://main.gd" id="1_0r6n5"]
-[ext_resource type="PackedScene" uid="uid://cao351pllxqpa" path="res://mob.tscn" id="2_50pww"]
+[ext_resource type="PackedScene" uid="uid://nupi26p56vny" path="res://enemies/swimmer.tscn" id="2_7mycd"]
 [ext_resource type="PackedScene" uid="uid://bwhlkliwp13p4" path="res://player.tscn" id="3_veqnc"]
 [ext_resource type="PackedScene" uid="uid://b0efehuavobda" path="res://hud.tscn" id="4_0qnje"]
 [ext_resource type="AudioStream" uid="uid://sgfduhhw4pno" path="res://art/House In a Forest Loop.ogg" id="5_55d8h"]
@@ -15,7 +15,7 @@ point_count = 5
 
 [node name="Main" type="Node" unique_id=1975992027]
 script = ExtResource("1_0r6n5")
-mob_scene = ExtResource("2_50pww")
+mob_scene = ExtResource("2_7mycd")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=569320965]
 anchors_preset = 15
