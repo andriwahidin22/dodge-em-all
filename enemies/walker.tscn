@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://mob.tscn" id="1_mob"]
+[ext_resource type="Texture2D" path="res://art/enemies/fly.png" id="2_fly"]
+[ext_resource type="Texture2D" path="res://art/enemies/fly_move.png" id="3_flymove"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_walker"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_fly")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_flymove")
+}],
+"loop": true,
+"name": &"move",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_walker"]
+radius = 24.0
+
+[node name="Walker" instance=ExtResource("1_mob")]
+
+[node name="AnimatedSprite2D" parent="." index="0"]
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_walker")
+animation = &"move"
+
+[node name="CollisionShape2D" parent="." index="1"]
+rotation = 0.0
+shape = SubResource("CircleShape2D_walker")

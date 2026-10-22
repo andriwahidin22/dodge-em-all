@@ -69,7 +69,7 @@ func _on_MobTimer_timeout():
 
 	# Add some randomness to the direction.
 	direction += randf_range(-PI / 4, PI / 4)
-	mob.rotation = direction
+	# Sprite musuh diputar sesuai arah ini oleh Mob.face_direction() di _ready().
 
 	# Choose the velocity for the mob.
 	var velocity = Vector2(randf_range(150.0, 250.0), 0.0)

@@ -1,10 +1,12 @@
 [gd_scene format=3 uid="uid://bwhlkliwp13p4"]
 
 [ext_resource type="Script" uid="uid://6s0lxctks3qn" path="res://player.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://b2aofu01vxvea" path="res://art/playerGrey_walk1.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://ddjou2q6gxlfr" path="res://art/playerGrey_walk2.png" id="3"]
-[ext_resource type="Texture2D" uid="uid://bcow5c46vixno" path="res://art/playerGrey_up1.png" id="4"]
-[ext_resource type="Texture2D" uid="uid://dw3lwgwhpbfx8" path="res://art/playerGrey_up2.png" id="5"]
+[ext_resource type="Texture2D" path="res://art/player/alien_walk1.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/player/alien_walk2.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/player/alien_climb1.png" id="4"]
+[ext_resource type="Texture2D" path="res://art/player/alien_climb2.png" id="5"]
+[ext_resource type="Texture2D" path="res://art/player/alien_front.png" id="6"]
+[ext_resource type="Texture2D" path="res://art/player/alien_hit.png" id="7"]
 
 [sub_resource type="SpriteFrames" id="1"]
 animations = [{
@@ -16,7 +18,7 @@ animations = [{
 "texture": ExtResource("3")
 }],
 "loop": 1,
-"name": &"right",
+"name": &"walk",
 "speed": 5.0
 }, {
 "frames": [{
@@ -28,6 +30,22 @@ animations = [{
 }],
 "loop": 1,
 "name": &"up",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7")
+}],
+"loop": 1,
+"name": &"hit",
 "speed": 5.0
 }]
 
@@ -58,9 +76,9 @@ z_index = 10
 script = ExtResource("1")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1437394421]
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.4, 0.4)
 sprite_frames = SubResource("1")
-animation = &"right"
+animation = &"idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1954506745]
 shape = SubResource("2")
