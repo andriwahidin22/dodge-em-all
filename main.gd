@@ -7,9 +7,8 @@ var score = 0
 
 # Hidup lagi lewat kuis: saat nyawa habis, pemain ditawari kuis (logika / Python / JavaScript / HTML).
 # Jawaban benar = lanjut main dengan REVIVE_LIVES nyawa; salah atau waktu habis = game over.
-const MAX_REVIVES = 2    # jatah hidup lagi per ronde
 const REVIVE_LIVES = 1   # nyawa yang didapat setelah hidup lagi
-var revives_used = 0
+var revive_used_this_wave = false
 
 # Item nyawa (fitur 3): muncul acak setiap 10-20 detik, hanya kalau nyawa belum penuh.
 var life_pickup_scene = preload("res://life_pickup.tscn")
@@ -90,7 +89,6 @@ func new_game(start_wave = 1, start_score = 0, start_lives = -1):
 	_clear_field()
 	score = start_score
 	_won = false
-	revives_used = 0
 	$Player.start($StartPosition.position, start_lives)
 	$HUD.update_score(score)
 	$ScoreTimer.start()
@@ -101,6 +99,8 @@ func new_game(start_wave = 1, start_score = 0, start_lives = -1):
 
 
 func _on_wave_started(wave):
+	# Setiap wave baru mendapat satu kesempatan hidup lagi yang baru.
+	revive_used_this_wave = false
 	$OceanBackground.set_depth_theme(wave)
 
 
@@ -144,23 +144,23 @@ func _on_save_and_quit():
 
 # Dipanggil saat sinyal Player.died (nyawa habis): tawarkan kuis kalau jatah hidup lagi masih ada.
 func _on_player_died():
-	if revives_used < MAX_REVIVES:
-		$HUD.show_revive_quiz(revives_used + 1, MAX_REVIVES)  # game di-pause oleh HUD
+	if not revive_used_this_wave:
+		$HUD.show_revive_quiz($WaveManager.wave)  # game di-pause oleh HUD
 	else:
-		_game_over()
+		_game_over("Kesempatan wave ini sudah dipakai")
 
 
 # Kuis dijawab benar: musuh dibersihkan, Player kembali ke posisi awal dengan masa kebal.
 func _on_revive_passed():
-	revives_used += 1
+	revive_used_this_wave = true
 	get_tree().call_group(&"mobs", &"queue_free")
 	$Player.revive($StartPosition.position, REVIVE_LIVES)
 
 
-func _game_over():
+func _game_over(reason = ""):
 	var new_record = _end_round()
 	SaveManager.clear_progress()  # simpanan dihapus supaya kekalahan tidak bisa "dibatalkan"
-	$HUD.show_game_over(new_record)
+	$HUD.show_game_over(new_record, reason)
 	$DeathSound.play()
 
 

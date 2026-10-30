@@ -263,8 +263,8 @@ func _set_category_style(category):
 	_category_chip.add_theme_stylebox_override("panel", _make_style(category_color, category_color.lightened(0.25), 1, 8))
 
 
-# `number` = revive ke berapa; `max_number` = jatah revive per ronde.
-func show_quiz(number, max_number):
+# `wave` = wave aktif; setiap wave hanya memiliki satu kesempatan revive.
+func show_quiz(wave):
 	_kill_tweens()
 	_question = _pick_question()
 	_answered = false
@@ -274,7 +274,7 @@ func show_quiz(number, max_number):
 	_time_left = TIME_LIMIT
 	_lock_left = INPUT_LOCK
 
-	_header_label.text = "Kesempatan %d/%d" % [number, max_number]
+	_header_label.text = "Wave %d · Kesempatan 1x" % wave
 	_set_category_style(_question.cat)
 	_question_label.text = _question.q
 	_code_box.visible = _question.has("code")

@@ -67,10 +67,13 @@ func show_message(text, duration = 1.0):
 	$MessageTimer.start(duration)
 
 
-func show_game_over(new_record = false):
+func show_game_over(new_record = false, reason = ""):
 	playing = false
 	$PauseButton.hide()
-	show_message("High Score\nBaru!" if new_record else "Game Over")
+	var text = "High Score\nBaru!" if new_record else "Game Over"
+	if not reason.is_empty():
+		text = reason + "\n" + text
+	show_message(text)
 	await $MessageTimer.timeout
 	show_title()
 
@@ -223,11 +226,11 @@ func _on_WaveQuitButton_pressed():
 # Game di-pause selama kuis tampil. Main yang memutuskan kapan kuis ditawarkan
 # (lihat Main._on_player_died); HUD hanya menampilkan dan melaporkan hasilnya.
 
-func show_revive_quiz(number, max_number):
+func show_revive_quiz(wave):
 	get_tree().paused = true
 	$PauseButton.hide()
 	$MessageLabel.hide()
-	quiz_panel.show_quiz(number, max_number)
+	quiz_panel.show_quiz(wave)
 
 
 func _on_quiz_passed():
