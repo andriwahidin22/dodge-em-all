@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://life_pickup.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://art/hearts/heartsupdated.png" id="2_hearts"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 22.0
+
+[node name="LifePickup" type="Area2D" groups=["life_pickup"]]
+z_index = 5
+monitoring = false
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("2_hearts")
+region_enabled = true
+region_rect = Rect2(0, 0, 25, 25)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pickup")

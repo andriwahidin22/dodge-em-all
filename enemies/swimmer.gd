@@ -2,7 +2,7 @@ extends Mob
 # Swimmer: maju sambil meliuk ke kiri-kanan (gerak sinus), seperti ikan berenang.
 
 @export var wave_amplitude = 60.0  # seberapa jauh ikan menyimpang ke samping (piksel)
-@export var wave_frequency = 3.0   # seberapa cepat ikan meliuk (radian/detik); 3.0 ≈ 1 liukan per 2 detik
+@export var wave_frequency = 1.5   # seberapa cepat ikan meliuk (radian/detik); 3.0 ≈ 1 liukan per 2 detik
 
 var _base_velocity: Vector2  # arah dan kecepatan maju, diisi main.gd sebelum musuh muncul
 var _time = 0.0
