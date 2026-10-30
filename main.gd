@@ -53,6 +53,7 @@ func _ready():
 
 	# Sistem wave: HUD menampilkan "Wave n/10 · s/3" dan pesan tiap sub-wave.
 	$WaveManager.subwave_started.connect(func(w, s): $HUD.show_subwave(w, s, $WaveManager.max_wave))
+	$WaveManager.wave_started.connect(_on_wave_started)
 	$WaveManager.wave_cleared.connect(_on_wave_cleared)
 	$WaveManager.game_won.connect(func(): _won = true)
 
@@ -95,7 +96,12 @@ func new_game(start_wave = 1, start_score = 0, start_lives = -1):
 	$ScoreTimer.start()
 	_restart_life_timer()
 	$Music.play()
+	$OceanBackground.start_round()
 	$WaveManager.start_wave(start_wave)  # "Wave n" tampil 2 detik, lalu musuh mulai muncul
+
+
+func _on_wave_started(wave):
+	$OceanBackground.set_depth_theme(wave)
 
 
 func continue_game():
@@ -169,6 +175,7 @@ func _win():
 # Skor tetap dihitung untuk high score. Simpanan yang sudah ada tidak diubah.
 func quit_to_menu():
 	_end_round()
+	$OceanBackground.reset_to_shallow()
 	$Player.stop()
 	get_tree().call_group(&"mobs", &"queue_free")
 	$HUD.show_title()
@@ -181,6 +188,7 @@ func _end_round():
 	$ScoreTimer.stop()
 	life_timer.stop()
 	wave_end_timer.stop()
+	$OceanBackground.stop_round()
 	get_tree().call_group(&"life_pickup", &"queue_free")
 	$Music.stop()
 	var new_record = score > SaveManager.highest_score

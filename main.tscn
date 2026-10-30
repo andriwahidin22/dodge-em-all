@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://b0efehuavobda" path="res://hud.tscn" id="4_0qnje"]
 [ext_resource type="AudioStream" uid="uid://sgfduhhw4pno" path="res://art/House In a Forest Loop.ogg" id="5_55d8h"]
 [ext_resource type="AudioStream" uid="uid://td2mgko63p61" path="res://art/gameover.wav" id="6_hp1r0"]
+[ext_resource type="PackedScene" path="res://ocean_background.tscn" id="8_ocean"]
 
 [sub_resource type="Curve2D" id="1"]
 _data = {
@@ -16,14 +17,7 @@ point_count = 5
 [node name="Main" type="Node" unique_id=1975992027]
 script = ExtResource("1_0r6n5")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=569320965]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.219608, 0.372549, 0.380392, 1)
+[node name="OceanBackground" parent="." instance=ExtResource("8_ocean")]
 
 [node name="Player" parent="." unique_id=927660131 instance=ExtResource("3_veqnc")]
 
