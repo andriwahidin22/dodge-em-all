@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://c1g57034r2c0" path="res://hud.gd" id="1"]
 [ext_resource type="FontFile" uid="uid://bgv586r20ps8e" path="res://fonts/Xolonium-Regular.ttf" id="2_2jm3i"]
+[ext_resource type="Texture2D" uid="uid://c345irniv545n" path="res://art/ui/pause.png" id="3_pause"]
+[ext_resource type="Script" path="res://credits.gd" id="4_credits"]
 
 [sub_resource type="InputEventAction" id="InputEventAction_fopy7"]
 action = &"start_game"
@@ -34,8 +36,8 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("2_2jm3i")
 theme_override_font_sizes/font_size = 60
-text = "Dodge the
-Creeps"
+text = "Dodge 'em
+All"
 horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="." unique_id=1561548516]
@@ -45,15 +47,31 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -90.0
-offset_top = -200.0
+offset_top = -220.0
 offset_right = 90.0
-offset_bottom = -100.0
+offset_bottom = -130.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_2jm3i")
 theme_override_font_sizes/font_size = 60
 shortcut = SubResource("4")
 text = "Start"
+
+[node name="CreditsButton" type="Button" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -115.0
+offset_right = 90.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 34
+text = "Credits"
 
 [node name="MessageTimer" type="Timer" parent="." unique_id=1675980570]
 process_mode = 1
@@ -64,14 +82,141 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -23.0
+offset_top = -38.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 0
 pivot_offset = Vector2(-260, -240)
 theme_override_fonts/font = ExtResource("2_2jm3i")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 26
 text = "Best: 0"
 horizontal_alignment = 1
 
+[node name="PauseButton" type="TextureButton" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 72.0
+grow_horizontal = 0
+texture_normal = ExtResource("3_pause")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="PausePanel" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Menu" type="VBoxContainer" parent="PausePanel"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -140.0
+offset_right = 170.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="PauseLabel" type="Label" parent="PausePanel/Menu"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 60
+text = "Pause"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="PausePanel/Menu"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 30
+text = "Lanjut"
+
+[node name="QuitButton" type="Button" parent="PausePanel/Menu"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 30
+text = "Keluar ke menu"
+
+[node name="CreditsPanel" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.92)
+script = ExtResource("4_credits")
+
+[node name="Card" type="Control" parent="CreditsPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="CreditsPanel/Card"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 150.0
+offset_right = -20.0
+offset_bottom = 220.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 38
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Body" type="Label" parent="CreditsPanel/Card"]
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 24.0
+offset_top = -90.0
+offset_right = -24.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HintLabel" type="Label" parent="CreditsPanel"]
+modulate = Color(1, 1, 1, 0.5)
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -45.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2_2jm3i")
+theme_override_font_sizes/font_size = 18
+text = "Ketuk layar / Esc untuk kembali"
+horizontal_alignment = 1
+
 [connection signal="pressed" from="StartButton" to="." method="_on_StartButton_pressed"]
+[connection signal="pressed" from="CreditsButton" to="." method="_on_CreditsButton_pressed"]
 [connection signal="timeout" from="MessageTimer" to="." method="_on_MessageTimer_timeout"]
+[connection signal="pressed" from="PauseButton" to="." method="_on_pause_button_pressed"]
+[connection signal="pressed" from="PausePanel/Menu/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="PausePanel/Menu/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="finished" from="CreditsPanel" to="." method="_on_credits_finished"]

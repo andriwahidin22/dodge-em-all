@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://mob.tscn" id="1_mob"]
+[ext_resource type="Script" path="res://enemies/dasher.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://art/enemies/bee.png" id="3_a"]
+[ext_resource type="Texture2D" path="res://art/enemies/bee_move.png" id="4_b"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dasher"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_a")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_b")
+}],
+"loop": true,
+"name": &"move",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dasher"]
+radius = 26.0
+
+[node name="Dasher" instance=ExtResource("1_mob")]
+script = ExtResource("2_script")
+
+[node name="AnimatedSprite2D" parent="." index="0"]
+scale = Vector2(0.75, 0.75)
+sprite_frames = SubResource("SpriteFrames_dasher")
+animation = &"move"
+
+[node name="CollisionShape2D" parent="." index="1"]
+rotation = 0.0
+shape = SubResource("CircleShape2D_dasher")

@@ -71,7 +71,7 @@ gravity = Vector3(0, 0, 0)
 scale_curve = SubResource("6")
 color_ramp = SubResource("4")
 
-[node name="Player" type="Area2D" unique_id=2141725708]
+[node name="Player" type="Area2D" unique_id=2141725708 groups=["player"]]
 z_index = 10
 script = ExtResource("1")
 

@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://mob.tscn" id="1_mob"]
+[ext_resource type="Script" path="res://enemies/splitter.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://art/enemies/slimeBlue.png" id="3_a"]
+[ext_resource type="Texture2D" path="res://art/enemies/slimeBlue_move.png" id="4_b"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_splittersmall"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_a")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_b")
+}],
+"loop": true,
+"name": &"move",
+"speed": 6.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_splittersmall"]
+radius = 15.0
+
+[node name="SplitterSmall" instance=ExtResource("1_mob")]
+script = ExtResource("2_script")
+can_split = false
+speed_factor = 1.3
+
+[node name="AnimatedSprite2D" parent="." index="0"]
+scale = Vector2(0.55, 0.55)
+sprite_frames = SubResource("SpriteFrames_splittersmall")
+animation = &"move"
+offset = Vector2(0, -35)
+
+[node name="CollisionShape2D" parent="." index="1"]
+rotation = 0.0
+shape = SubResource("CircleShape2D_splittersmall")

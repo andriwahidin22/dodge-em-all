@@ -85,6 +85,10 @@ func _unhandled_input(event):
 		touch_pending += event.relative * touch_sensitivity
 
 
+func reset_touch():
+	touch_pending = Vector2.ZERO
+
+
 func start(pos):
 	if _invulnerable_tween:
 		_invulnerable_tween.kill()

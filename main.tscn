@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c4wt6ace7hycd" path="res://main.gd" id="1_0r6n5"]
 [ext_resource type="PackedScene" uid="uid://nupi26p56vny" path="res://enemies/swimmer.tscn" id="2_7mycd"]
 [ext_resource type="PackedScene" uid="uid://bwhlkliwp13p4" path="res://player.tscn" id="3_veqnc"]
-[ext_resource type="PackedScene" uid="uid://b0efehuavobda" path="res://hud.tscn" id="4_0qnje"]
+[ext_resource type="PackedScene" path="res://hud.tscn" id="4_0qnje"]
 [ext_resource type="AudioStream" uid="uid://sgfduhhw4pno" path="res://art/House In a Forest Loop.ogg" id="5_55d8h"]
 [ext_resource type="AudioStream" uid="uid://td2mgko63p61" path="res://art/gameover.wav" id="6_hp1r0"]
 [ext_resource type="Script" path="res://wave_manager.gd" id="7_wave"]

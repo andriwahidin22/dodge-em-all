@@ -1,7 +1,10 @@
 extends Node
 
+const WaveAudio = preload("res://wave_audio.gd")
+
 @export var mob_scene: PackedScene
 var score
+var _wave_audio
 
 # Status jatah kuis hidup-lagi (hanya 1x per wave)
 var revive_used_this_wave = false
@@ -20,6 +23,14 @@ func _ready():
 	$WaveManager.game_won.connect(_on_game_won)
 	$HUD.revive_passed.connect(_on_revive_passed)
 	$HUD.revive_failed.connect(_on_revive_failed)
+	$HUD.game_resumed.connect(_on_hud_game_resumed)
+	$HUD.quit_to_menu.connect(_on_hud_quit_to_menu)
+
+	# Inisialisasi pengatur audio adaptif wave
+	_wave_audio = WaveAudio.new()
+	_wave_audio.name = "WaveAudio"
+	add_child(_wave_audio)
+	_wave_audio.setup($Music)
 
 
 func _update_play_area():
@@ -83,6 +94,7 @@ func game_over():
 	$ScoreTimer.stop()
 	$MobTimer.stop()
 	$HUD.update_revive_indicator(false)
+	_wave_audio.stop()
 	var new_record = score > SaveManager.highest_score
 	if new_record:
 		SaveManager.save_high_score(score)
@@ -103,6 +115,7 @@ func new_game():
 	$StartTimer.start()
 	$HUD.update_score(score)
 	$HUD.show_message("Get Ready")
+	_wave_audio.stop()
 	$Music.play()
 
 
@@ -113,9 +126,11 @@ func _on_wave_started(wave):
 	$SpaceBackground.set_wave_theme(wave)
 	$HUD.update_wave(wave, $WaveManager.max_wave)
 	$HUD.show_message("Wave %d" % wave)
+	_wave_audio.on_wave_started(wave)
 
 
-func _on_subwave_started(_wave, _subwave):
+func _on_subwave_started(wave, subwave):
+	_wave_audio.on_subwave_started(wave, subwave)
 	$MobTimer.wait_time = $WaveManager.get_spawn_interval()
 	$MobTimer.start()
 	$ScoreTimer.start()
@@ -132,6 +147,7 @@ func _on_wave_cleared(wave):
 	score += bonus
 	$HUD.update_score(score)
 	$HUD.show_message("Wave %d Selesai!\n+%d" % [wave, bonus])
+	_wave_audio.on_wave_cleared(wave)
 
 
 func _on_game_won():
@@ -141,6 +157,7 @@ func _on_game_won():
 	$MobTimer.stop()
 	$ScoreTimer.stop()
 	$HUD.update_revive_indicator(false)
+	_wave_audio.on_game_won()
 	get_tree().call_group(&"mobs", &"queue_free")
 	var new_record = score > SaveManager.highest_score
 	if new_record:
@@ -155,6 +172,8 @@ func _on_game_won():
 func _on_MobTimer_timeout():
 	# Membuat musuh sesuai variasi wave (Walker atau Swimmer)
 	var mob = $WaveManager.create_enemy()
+	if mob == null:
+		return  # layar sudah penuh, lewati giliran spawn ini
 
 	# Pilih titik acak di Path2D
 	var mob_spawn_location = get_node(^"MobPath/MobSpawnLocation")
@@ -183,3 +202,28 @@ func _on_ScoreTimer_timeout():
 
 func _on_StartTimer_timeout():
 	$WaveManager.start_waves()
+
+
+func _on_hud_game_resumed():
+	$Player.reset_touch()
+
+
+func _on_hud_quit_to_menu():
+	_is_processing_hit = false
+	$SpaceBackground.stop_events()
+	$SpaceBackground.reset_to_title_theme()
+	$WaveManager.stop()
+	$ScoreTimer.stop()
+	$MobTimer.stop()
+	$StartTimer.stop()
+	$HUD.update_revive_indicator(false)
+	$Music.stop()
+	_wave_audio.stop()
+	get_tree().call_group(&"mobs", &"queue_free")
+	$Player.hide()
+	$Player.reset_touch()
+	var new_record = score > SaveManager.highest_score
+	if new_record:
+		SaveManager.save_high_score(score)
+	$HUD.update_high_score(SaveManager.highest_score)
+	$HUD.show_title()
