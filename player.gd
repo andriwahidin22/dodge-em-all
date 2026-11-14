@@ -1,16 +1,20 @@
 extends Area2D
 
-signal hit
-
-# Durasi kebal sesaat setelah revive (detik)
-const REVIVE_INVULNERABLE_TIME = 3.0
+signal hit                   # setiap kali tertabrak musuh (nyawa berkurang 1)
+signal lives_changed(lives)  # jumlah nyawa berubah (tertabrak, ambil item, game baru, hidup lagi)
+signal died                  # nyawa habis -> Main membuka kuis hidup-lagi atau game over
 
 @export var speed = 400 # How fast the player will move (pixels/sec).
 var screen_size # Size of the game window.
 
-# Status kebal setelah revive
-var is_invulnerable = false
-var _invulnerable_tween: Tween
+# Nyawa dan masa kebal (fitur 3).
+@export var max_lives = 3
+@export var invincible_duration = 1.5  # lama kebal setelah tertabrak (detik)
+const REVIVE_INVULNERABLE_TIME = 3.0   # lama kebal setelah hidup lagi dari kuis (detik)
+const HURT_FACE_TIME = 0.4             # lama wajah "kesakitan" (animasi hit) setelah tertabrak
+var lives = 3
+var invincible_time = 0.0              # sisa masa kebal; > 0 berarti sedang kebal
+var _hurt_time = 0.0                   # sisa waktu animasi hit
 
 # Kontrol sentuh relatif: karakter ikut bergerak sejauh jari digeser,
 # bukan berpindah ke posisi jari. Jadi jari bisa diletakkan di mana saja
@@ -25,6 +29,8 @@ func _ready():
 
 
 func _process(delta):
+	_update_invincibility(delta)
+
 	var velocity = Vector2.ZERO # The player's movement vector.
 	if Input.is_action_pressed(&"move_right"):
 		velocity.x += 1
@@ -59,6 +65,11 @@ func _update_animation(velocity):
 	# dan tampak depan (idle). Karakter TIDAK diputar seperti di demo asli,
 	# supaya alien tidak terbalik saat bergerak ke bawah.
 	var sprite = $AnimatedSprite2D
+	if _hurt_time > 0:
+		# Sesaat setelah tertabrak: tampilkan wajah kesakitan.
+		sprite.play(&"hit")
+		return
+
 	if velocity == Vector2.ZERO:
 		sprite.play(&"idle")
 		return
@@ -89,48 +100,73 @@ func reset_touch():
 	touch_pending = Vector2.ZERO
 
 
-func start(pos):
-	if _invulnerable_tween:
-		_invulnerable_tween.kill()
-	is_invulnerable = false
-	$AnimatedSprite2D.modulate.a = 1.0
+func _update_invincibility(delta):
+	if _hurt_time > 0:
+		_hurt_time -= delta
+	if invincible_time <= 0:
+		return
+	invincible_time -= delta
+	if invincible_time > 0:
+		# Berkedip 5 kali per detik selama kebal.
+		$AnimatedSprite2D.modulate.a = 0.35 if fmod(invincible_time, 0.2) < 0.1 else 1.0
+	else:
+		$AnimatedSprite2D.modulate.a = 1.0
+
+
+# Masih kebal (setelah tertabrak atau setelah hidup lagi dari kuis)?
+func is_invulnerable() -> bool:
+	return invincible_time > 0
+
+
+# `start_lives`: nyawa awal; -1 = penuh. Melanjutkan dari simpanan memakai nyawa yang tersimpan.
+func start(pos, start_lives = -1):
 	touch_pending = Vector2.ZERO
+	lives = max_lives if start_lives < 1 else mini(start_lives, max_lives)
+	invincible_time = 0.0
+	_hurt_time = 0.0
+	$AnimatedSprite2D.modulate.a = 1.0
+	lives_changed.emit(lives)
 	position = pos
 	rotation = 0
 	show()
 	$CollisionShape2D.disabled = false
 
 
-# Menghidupkan kembali pemain di posisi awal dengan kebal sementara
-func revive(pos):
+# Menghidupkan kembali pemain (kuis hidup-lagi berhasil) di posisi awal
+# dengan `revive_lives` nyawa dan kebal lebih lama dari biasanya.
+func revive(pos, revive_lives = 1):
 	touch_pending = Vector2.ZERO
+	lives = clampi(revive_lives, 1, max_lives)
+	lives_changed.emit(lives)
 	position = pos
 	rotation = 0
 	show()
 	$CollisionShape2D.set_deferred(&"disabled", false)
-	_start_invulnerability(REVIVE_INVULNERABLE_TIME)
+	invincible_time = REVIVE_INVULNERABLE_TIME
+	_hurt_time = 0.0
 
 
-func _start_invulnerability(duration):
-	is_invulnerable = true
-	if _invulnerable_tween:
-		_invulnerable_tween.kill()
-	_invulnerable_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	var step = 0.15
-	var count = int(duration / (step * 2))
-	for i in range(count):
-		_invulnerable_tween.tween_property($AnimatedSprite2D, "modulate:a", 0.25, step)
-		_invulnerable_tween.tween_property($AnimatedSprite2D, "modulate:a", 1.0, step)
-	_invulnerable_tween.tween_callback(func():
-		is_invulnerable = false
-		$AnimatedSprite2D.modulate.a = 1.0
-	)
-
-
-func _on_body_entered(_body):
-	if is_invulnerable:
+func _on_body_entered(body):
+	# Sedang kebal atau sudah mati: tabrakan diabaikan.
+	if invincible_time > 0 or lives <= 0:
 		return
-	hide() # Player disappears after being hit.
+	lives -= 1
+	body.queue_free()  # musuh yang menabrak ikut hilang supaya tidak menabrak dua kali
 	hit.emit()
-	# Must be deferred as we can't change physics properties on a physics callback.
-	$CollisionShape2D.set_deferred(&"disabled", true)
+	lives_changed.emit(lives)
+	if lives > 0:
+		invincible_time = invincible_duration
+		_hurt_time = HURT_FACE_TIME
+	else:
+		hide() # Player disappears after being hit.
+		died.emit()
+		# Must be deferred as we can't change physics properties on a physics callback.
+		$CollisionShape2D.set_deferred(&"disabled", true)
+
+
+# Item nyawa (life_pickup.tscn) adalah Area2D, jadi terdeteksi lewat area_entered.
+func _on_area_entered(area):
+	if area.is_in_group(&"life_pickup") and lives > 0 and lives < max_lives:
+		lives += 1
+		lives_changed.emit(lives)
+		area.collect()

@@ -3,11 +3,18 @@ extends CanvasLayer
 const SpaceTheme = preload("res://space_theme.gd")
 const QuizPanel = preload("res://quiz_panel.gd")
 
-signal start_game
+signal start_game      # Start / Main Baru -> Main.new_game()
+signal continue_game   # Lanjutkan dari simpanan -> Main.continue_game()
 signal revive_passed
 signal revive_failed
 signal game_resumed
-signal quit_to_menu
+signal quit_to_menu    # "Keluar ke menu" (pause) atau "Keluar" (akhir wave)
+signal next_wave       # "Lanjut" di layar akhir wave
+signal save_and_quit   # "Simpan & Keluar" di layar akhir wave
+signal credits_opened
+signal credits_closed
+signal theme_selected(theme_id)
+signal volume_changed(bus_name, value)
 
 const TITLE_TEXT = "Dodge 'em\nAll"
 
@@ -15,6 +22,12 @@ const TITLE_TEXT = "Dodge 'em\nAll"
 var wave_label: Label
 var revive_star: TextureRect
 var quiz_panel: QuizPanel
+var lives_box: HBoxContainer
+
+# Ikon nyawa (fitur 3): pixel-art 60x60 buatan tools/generate_hearts.py.
+const HEART_FULL = preload("res://art/hearts/heart_full.png")
+const HEART_EMPTY = preload("res://art/hearts/heart_empty.png")
+const HEART_SIZE = 32
 
 var playing = false
 var _message_was_visible = false
@@ -25,14 +38,19 @@ func _ready():
 	$MessageTimer.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_setup_wave_label()
 	_setup_revive_indicator()
+	_setup_lives_box()
 	_apply_space_theme()
 	_setup_quiz_panel()
+	$CreditsPanel.theme_changed_requested.connect(func(theme_id): theme_selected.emit(theme_id))
+	$CreditsPanel.volume_changed_requested.connect(func(bus_name, val): volume_changed.emit(bus_name, val))
 	# Saat game dibuka, tampilkan high score yang tersimpan di layar judul.
 	update_high_score(SaveManager.highest_score)
 	$PauseButton.hide()
 	$PausePanel.hide()
 	$CreditsPanel.hide()
-	$CreditsButton.show()
+	$WaveEndPanel.hide()
+	$ConfirmPanel.hide()
+	_show_title_buttons()
 
 
 func _setup_wave_label():
@@ -60,6 +78,30 @@ func _setup_revive_indicator():
 	revive_star.modulate = SpaceTheme.COLOR_GOLD
 	revive_star.hide()
 	add_child(revive_star)
+
+
+# Deretan hati di bawah label wave (kiri atas).
+func _setup_lives_box():
+	lives_box = HBoxContainer.new()
+	lives_box.name = "LivesBox"
+	lives_box.offset_left = 20.0
+	lives_box.offset_top = 62.0
+	lives_box.add_theme_constant_override("separation", 6)
+	lives_box.hide()
+	add_child(lives_box)
+
+
+# Menampilkan hati penuh sebanyak `lives` dan hati kosong untuk sisanya.
+func update_lives(lives, max_lives):
+	while lives_box.get_child_count() < max_lives:
+		var icon = TextureRect.new()
+		icon.custom_minimum_size = Vector2(HEART_SIZE, HEART_SIZE)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # pixel art tetap tajam
+		lives_box.add_child(icon)
+	for i in lives_box.get_child_count():
+		lives_box.get_child(i).texture = HEART_FULL if i < lives else HEART_EMPTY
 
 
 func _setup_quiz_panel():
@@ -101,15 +143,27 @@ func _apply_space_theme():
 	var btn_hover = SpaceTheme.create_button_style(Color(0.12, 0.20, 0.35, 0.95), SpaceTheme.COLOR_ACCENT_CYAN, 14, 2)
 	var btn_pressed = SpaceTheme.create_button_style(Color(0.05, 0.35, 0.45, 0.98), SpaceTheme.COLOR_ACCENT_CYAN, 14, 3)
 
-	$StartButton.add_theme_stylebox_override("normal", btn_normal)
-	$StartButton.add_theme_stylebox_override("hover", btn_hover)
-	$StartButton.add_theme_stylebox_override("pressed", btn_pressed)
-	$StartButton.add_theme_stylebox_override("focus", btn_hover)
-	$StartButton.add_theme_color_override("font_color", SpaceTheme.COLOR_TEXT_PRIMARY)
-	$StartButton.add_theme_color_override("font_hover_color", SpaceTheme.COLOR_GOLD)
-	$StartButton.add_theme_color_override("font_pressed_color", SpaceTheme.COLOR_TEXT_PRIMARY)
-	$StartButton.add_theme_color_override("font_outline_color", SpaceTheme.COLOR_TEXT_OUTLINE)
-	$StartButton.add_theme_constant_override("outline_size", 3)
+	# Tombol layar judul, akhir wave, dan konfirmasi memakai gaya yang sama dengan Start.
+	for btn in [$StartButton, $TitleMenu/ContinueButton, $TitleMenu/NewGameButton,
+			$WaveEndPanel/Menu/NextWaveButton, $WaveEndPanel/Menu/SaveQuitButton,
+			$WaveEndPanel/Menu/WaveQuitButton, $ConfirmPanel/Menu/ConfirmYesButton,
+			$ConfirmPanel/Menu/ConfirmCancelButton]:
+		btn.add_theme_stylebox_override("normal", btn_normal)
+		btn.add_theme_stylebox_override("hover", btn_hover)
+		btn.add_theme_stylebox_override("pressed", btn_pressed)
+		btn.add_theme_stylebox_override("focus", btn_hover)
+		btn.add_theme_color_override("font_color", SpaceTheme.COLOR_TEXT_PRIMARY)
+		btn.add_theme_color_override("font_hover_color", SpaceTheme.COLOR_GOLD)
+		btn.add_theme_color_override("font_pressed_color", SpaceTheme.COLOR_TEXT_PRIMARY)
+		btn.add_theme_color_override("font_outline_color", SpaceTheme.COLOR_TEXT_OUTLINE)
+		btn.add_theme_constant_override("outline_size", 3)
+
+	# Judul panel akhir wave dan konfirmasi: emas seperti judul game.
+	for label in [$WaveEndPanel/Menu/WaveEndTitle, $ConfirmPanel/Menu/ConfirmLabel]:
+		label.add_theme_color_override("font_color", SpaceTheme.COLOR_GOLD)
+		label.add_theme_color_override("font_outline_color", SpaceTheme.COLOR_TEXT_OUTLINE)
+		label.add_theme_constant_override("outline_size", 4)
+	$WaveEndPanel/Menu/SummaryLabel.add_theme_color_override("font_color", SpaceTheme.COLOR_TEXT_PRIMARY)
 
 
 func show_revive_quiz(wave_number: int):
@@ -145,6 +199,7 @@ func show_message(text, duration = 1.0):
 
 func show_game_over(new_record = false):
 	update_wave(0)
+	lives_box.hide()
 	playing = false
 	$PauseButton.hide()
 	$PausePanel.hide()
@@ -156,9 +211,12 @@ func show_game_over(new_record = false):
 func show_title():
 	playing = false
 	update_wave(0)
+	lives_box.hide()
 	$PauseButton.hide()
 	$PausePanel.hide()
 	$CreditsPanel.hide()
+	$WaveEndPanel.hide()
+	$ConfirmPanel.hide()
 	$MessageTimer.stop()
 	$MessageLabel.text = TITLE_TEXT
 	$MessageLabel.show()
@@ -166,8 +224,21 @@ func show_title():
 	$CreditsButton.hide()
 	await get_tree().create_timer(1, false).timeout
 	if not playing:
+		_show_title_buttons()
+
+
+# Tombol layar judul tergantung ada atau tidaknya simpanan progress:
+# tanpa simpanan = Start, dengan simpanan = Lanjutkan + Main Baru.
+func _show_title_buttons():
+	var progress = SaveManager.load_progress()
+	$CreditsButton.show()
+	if progress.is_empty():
+		$TitleMenu.hide()
 		$StartButton.show()
-		$CreditsButton.show()
+	else:
+		$StartButton.hide()
+		$TitleMenu/ContinueButton.text = "Lanjutkan\nWave %d · Skor %d" % [progress.next_wave, progress.score]
+		$TitleMenu.show()
 
 
 func update_score(score):
@@ -178,33 +249,107 @@ func update_high_score(value):
 	$HighScoreLabel.text = "Best: %d" % value
 
 
-func _on_StartButton_pressed():
+# Semua tombol yang memulai ronde (Start, Lanjutkan, Ya mulai baru) lewat sini.
+func _begin_round():
 	$StartButton.hide()
 	$CreditsButton.hide()
+	$TitleMenu.hide()
+	$ConfirmPanel.hide()
 	$HighScoreLabel.hide()  # sembunyikan selama bermain supaya layar bersih
 	$PauseButton.show()
+	lives_box.show()
 	playing = true
+
+
+func _on_StartButton_pressed():
+	_begin_round()
 	start_game.emit()
+
+
+func _on_ContinueButton_pressed():
+	_begin_round()
+	continue_game.emit()
+
+
+# "Main Baru" saat ada simpanan: minta konfirmasi dulu, simpanan baru dihapus kalau pemain memilih Ya.
+func _on_NewGameButton_pressed():
+	var progress = SaveManager.load_progress()
+	$ConfirmPanel/Menu/ConfirmLabel.text = "Mulai baru?\nProgress Wave %d akan dihapus." % progress.get("next_wave", 1)
+	$TitleMenu.hide()
+	$CreditsButton.hide()
+	$MessageLabel.hide()  # judul disembunyikan supaya tidak bertumpuk dengan teks konfirmasi
+	$ConfirmPanel.show()
+
+
+func _on_ConfirmYesButton_pressed():
+	SaveManager.clear_progress()
+	_begin_round()
+	start_game.emit()
+
+
+func _on_ConfirmCancelButton_pressed():
+	$ConfirmPanel.hide()
+	$MessageLabel.show()
+	_show_title_buttons()
 
 
 func _on_CreditsButton_pressed():
 	$StartButton.hide()
+	$TitleMenu.hide()
 	$CreditsButton.hide()
 	$HighScoreLabel.hide()
 	$MessageLabel.hide()
+	credits_opened.emit()
 	$CreditsPanel.play()
 
 
 func _on_credits_finished():
+	credits_closed.emit()
 	if not playing:
 		$MessageLabel.show()
 		$HighScoreLabel.show()
-		$StartButton.show()
-		$CreditsButton.show()
+		_show_title_buttons()
 
 
 func _on_MessageTimer_timeout():
 	$MessageLabel.hide()
+
+
+# ---------------- Layar akhir wave ----------------
+# Game di-pause selama layar ini tampil; ketiga tombol melepas pause lalu memberi tahu Main.
+
+func show_wave_end(wave, max_wave, score, bonus, lives):
+	get_tree().paused = true
+	$PauseButton.hide()
+	$PausePanel.hide()
+	$MessageLabel.hide()
+	$WaveEndPanel/Menu/WaveEndTitle.text = "Wave %d selesai!" % wave
+	$WaveEndPanel/Menu/SummaryLabel.text = "Skor: %d\nBonus wave: +%d\nNyawa: %d" % [score, bonus, lives]
+	$WaveEndPanel/Menu/NextWaveButton.text = "Lanjut ke Wave %d" % mini(wave + 1, max_wave)
+	$WaveEndPanel.show()
+
+
+func _close_wave_end():
+	get_tree().paused = false
+	$WaveEndPanel.hide()
+
+
+func _on_NextWaveButton_pressed():
+	_close_wave_end()
+	$PauseButton.show()
+	next_wave.emit()
+
+
+func _on_SaveQuitButton_pressed():
+	_close_wave_end()
+	playing = false
+	save_and_quit.emit()  # Main menyimpan lalu kembali ke layar judul
+
+
+func _on_WaveQuitButton_pressed():
+	_close_wave_end()
+	playing = false
+	quit_to_menu.emit()
 
 
 # ---------------- Pause ----------------

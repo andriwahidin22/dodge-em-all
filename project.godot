@@ -19,6 +19,10 @@ config/quit_on_go_back=false
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.webp"
 
+[audio]
+
+default_bus_layout="res://default_bus_layout.tres"
+
 [autoload]
 
 SaveManager="*uid://b8hmv6kadmkpe"
@@ -27,8 +31,8 @@ SaveManager="*uid://b8hmv6kadmkpe"
 
 window/size/viewport_width=480
 window/size/viewport_height=720
-window/size/window_width_override=640
-window/size/window_height_override=960
+window/size/window_width_override=480
+window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1

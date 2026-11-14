@@ -13,15 +13,13 @@ dengan 3 nyawa, sampai menyelesaikan wave 10. Dibangun dari demo resmi Godot
 ## Cara main
 
 - Hindari semua musuh. Setiap tersentuh musuh, nyawa berkurang 1 dan karakter
-  kebal sebentar. Nyawa habis = game over.
+  kebal sebentar.
+- Saat nyawa terakhir habis, muncul kuis hidup-lagi (sekali per wave). Jawaban benar =
+  hidup lagi dengan 1 nyawa, salah = game over.
 - Ambil item hati yang sesekali muncul untuk menambah nyawa (maksimal 3).
 - Skor: +1 per detik bertahan, ditambah bonus 10 × nomor wave setiap wave selesai.
 - Selesaikan wave 10 untuk menang. Di akhir setiap wave, pilih lanjut, simpan
-  lalu keluar, atau keluar.
-
-> Nyawa, item hati, dan pilihan di akhir wave belum diimplementasikan (fitur #3 dan #6).
-> Untuk sementara, saat tertabrak muncul kuis hidup-lagi (sekali per wave); jawaban benar
-> = lanjut bermain, salah = game over.
+  lalu keluar, atau keluar. Simpanan bisa dilanjutkan dari layar judul.
 
 ## Kontrol
 
@@ -35,7 +33,7 @@ Di laptop, kontrol sentuh bisa dicoba dengan klik dan seret mouse.
 
 ## Status fitur
 
-*Terakhir diperbarui: 3 November 2026.*
+*Terakhir diperbarui: 9 November 2026.*
 
 | # | Fitur | Pemilik | Status | Catatan |
 | --- | --- | --- | --- | --- |
@@ -43,27 +41,24 @@ Di laptop, kontrol sentuh bisa dicoba dengan klik dan seret mouse.
 | – | Orientasi potret, layar penuh, kontrol sentuh | – | Selesai | |
 | 1 | High score tersimpan | C | Selesai | |
 | 2 | Tombol pause | C | Selesai | Esc / Start gamepad / tombol Back; pause otomatis saat aplikasi kehilangan fokus |
-| 3 | Nyawa (3) + item nyawa gratis | A | Belum | Saat ini sekali tertabrak langsung kuis hidup-lagi (#9) atau game over |
+| 3 | Nyawa (3) + item nyawa gratis | A | Selesai | Ikon hati di kiri atas; kuis hidup-lagi (#9) muncul saat nyawa terakhir habis |
 | 4 | Jenis musuh berbeda (min. 3 dari 5) | B | Selesai | Kelima jenis sudah ada: Walker, Swimmer, Chaser, Dasher, Splitter |
 | 5 | Wave dan sub-wave, 10 wave | B | Selesai | Termasuk komposisi musuh per sub-wave, batas musuh di layar, debug F2 |
-| 6 | Simpan progress di akhir wave | A + C | Belum | `WaveManager.start_waves(n)` sudah siap untuk "Lanjutkan"; layar akhir wave dan `SaveManager.save_progress()` belum ada. Wave saat ini otomatis lanjut |
+| 6 | Simpan progress di akhir wave | A + C | Selesai | Layar akhir wave (Lanjut / Simpan & Keluar / Keluar); layar judul menampilkan "Lanjutkan" + "Main Baru" (dengan konfirmasi) bila ada simpanan |
 | 7 | Menembak | A | Ditunda, kalau masih ada waktu | Sprite musuh terkena tembakan (`art/enemies/*_hit.png`) sudah tersedia |
 | 8 | Latar luar angkasa prosedural & tema visual | – | Selesai | |
 | 9 | Kuis hidup-lagi (1x per wave) & dialog modal | – | Selesai | |
 | 10 | Layar credit | C | Selesai | |
 | 11 | Audio tambahan per wave | C | Selesai | Pitch musik naik per wave + SFX awal wave, sub-wave, wave selesai, menang |
+| 12 | Tema latar & ambience di Credits | C | Selesai | 4 tema (Angkasa, Planet, Laut, Kota) visual + ambience loop, tombol ganti & slider volume di Credits, tersimpan di settings |
 
 Perbarui kolom Status setiap fitur masuk ke branch `master`.
 
 ### Sisa pekerjaan
 
-- [ ] **#3 Nyawa + item hati** (A). Putuskan bersama cara menggabungkannya dengan kuis
-      hidup-lagi (#9), misalnya kuis baru muncul saat nyawa terakhir habis.
-- [ ] **#6 Simpan progress** (A + C). Layar akhir wave (Lanjut / Simpan & Keluar / Keluar),
-      tombol "Lanjutkan" dan "Main Baru" di layar judul, simpan dan hapus progress di `save_manager.gd`.
 - [ ] **HUD sub-wave** (C). Tampilkan "Wave n/10 · s/3" dan pesan "Sub-wave 2" / "Sub-wave 3".
 - [ ] **Balancing** (B). Mainkan sampai wave 10 di HP (gunakan F2 untuk melompati wave), lalu atur
-      `MAX_MOBS_*`, bobot di `WAVES`, dan kecepatan musuh di `wave_manager.gd`.
+      `max_mobs_*`, `base_interval`, `speed_*`, dan bobot di `WAVES` di `wave_manager.gd`.
 - [ ] **APK release, video demo, presentasi** (lihat Jadwal dan Pengumpulan).
 
 ## Aturan permainan
@@ -71,9 +66,14 @@ Perbarui kolom Status setiap fitur masuk ke branch `master`.
 **Wave.** Satu wave = 3 sub-wave masing-masing 20 detik, dengan jeda 2 detik di
 antaranya. Setiap wave makin cepat dan padat:
 
-- Interval spawn = max(0,2; 0,6 × 0,9^(wave−1)) detik
-- Kecepatan musuh = acak(150, 250) × (1 + 0,1 × (wave−1)) px/detik
+- Interval spawn = 1,0 × 0,91^(wave−1) detik (wave 1: 1,0 · wave 5: ±0,69 · wave 10: ±0,43)
+- Kecepatan musuh = acak(150, 250) × (1 + 0,05 × (wave−1)) px/detik (wave 10: 218–363)
 - Batas musuh di layar sekaligus = 5 + (wave−1); giliran spawn dilewati kalau sudah penuh
+- Per sub-wave: komposisi musuh berganti (lihat Jenis musuh); sub-wave 3 di wave 4
+  15% lebih padat (pengali interval 0,85)
+
+Rata-rata musuh di layar: ±3 di wave 1, ±4 di wave 3, ±6 di wave 10. Semua angka ada
+sebagai `@export` di `wave_manager.gd` dan bisa diubah di Inspector untuk balancing.
 
 Saat menguji dari editor (build debug), tekan **F2** untuk langsung menyelesaikan wave
 yang sedang berjalan.
@@ -92,9 +92,14 @@ Jenis baru diperkenalkan berdua dengan Walker dulu, baru dicampur di sub-wave
 berikutnya. Wave 5–10 memakai campuran acak dari semua jenis. Komposisinya ada di
 tabel `WAVES` di `wave_manager.gd`.
 
-**Nyawa.** 3 nyawa awal (maksimal 3), kebal 1,5 detik setelah tertabrak. Item
-nyawa muncul acak setiap 10–20 detik hanya kalau nyawa belum penuh, bertahan
-6 detik.
+**Nyawa.** 3 nyawa awal (maksimal 3), kebal 1,5 detik setelah tertabrak (berkedip,
+musuh yang menabrak ikut hilang). Item nyawa muncul acak setiap 10–20 detik hanya
+kalau nyawa belum penuh, bertahan 6 detik (berkedip di 2 detik terakhir), dan
+muncul minimal 120 px dari pemain.
+
+**Kuis hidup-lagi.** Saat nyawa terakhir habis dan jatah wave ini belum dipakai,
+game di-pause dan muncul satu soal. Benar = hidup lagi dengan 1 nyawa dan kebal
+3 detik; salah atau waktu habis = game over. Jatah kembali di awal wave berikutnya.
 
 **Simpan progress.** Satu slot simpanan (wave berikutnya, skor, nyawa). Simpanan
 dihapus saat game over, menang, atau saat memilih Main Baru (dengan konfirmasi).
@@ -148,21 +153,27 @@ Android di kanan atas editor.
 ```
 dodge-em-all/
 ├── main.tscn / main.gd      # aturan permainan, spawn, skor
-├── player.tscn / player.gd  # karakter pemain, kontrol keyboard dan sentuh
+├── player.tscn / player.gd  # karakter pemain, kontrol keyboard dan sentuh, nyawa, masa kebal
+├── life_pickup.*            # item hati (+1 nyawa)
 ├── mob.tscn / mob.gd        # musuh dasar
 ├── enemies/                 # walker, swimmer, chaser, dasher, splitter (+ splitter_small)
 ├── wave_manager.gd          # 10 wave × 3 sub-wave, komposisi musuh, kesulitan, batas musuh
 ├── hud.tscn / hud.gd        # skor, pesan, tombol, pause
-├── credits.gd               # kartu credit dan logika tampilan/skip credit
+├── credits.gd               # kartu credit, pemilih tema visual & ambience, slider volume
 ├── quiz_bank.gd             # bank soal kuis hidup-lagi
 ├── quiz_panel.gd            # dialog modal kuis hidup-lagi
-├── save_manager.gd          # autoload: simpan/muat high score
-├── space_background.*       # latar luar angkasa prosedural dan event acak
+├── save_manager.gd          # autoload: simpan/muat high score, progress, dan settings tema/volume
+├── background_base.gd       # kelas dasar antarmuka latar visual prosedural
+├── background_manager.gd    # pengelola tema latar, transisi, bus audio, dan ambience player
+├── space_background.*       # tema Angkasa prosedural dan event acak
+├── planet_background.*      # tema Planet asing prosedural dan event acak
+├── ocean_background.*       # tema Bawah Air / Lautan prosedural dan event acak
+├── city_background.*        # tema Kota di Bumi prosedural dan event acak
 ├── space_theme.gd           # warna dan gaya UI tema luar angkasa
 ├── wave_audio.gd            # pengatur audio adaptif wave (pitch naik, WAVE_MUSIC, sfx)
 ├── validate_quiz.py         # skrip cek kunci jawaban bank soal
-├── tools/                   # skrip pembantu (generator sfx sintetis)
-├── art/, fonts/             # aset visual dan audio (art/audio/)
+├── tools/                   # generator audio wave, musik permainan per tema, ikon nyawa, dan generator ambience loop
+├── art/, fonts/             # aset visual dan audio (art/audio/, art/audio/music/, art/audio/ambience/)
 └── export/                  # hasil export (diabaikan Git)
 ```
 
@@ -182,8 +193,10 @@ dodge-em-all/
 - Aset tambahan, semuanya berlisensi CC0:
   - Ikon pause, resume, keluar, simpan: [Kenney Game Icons](https://opengameart.org/content/game-icons)
   - Tombol dan panel menu: [Kenney UI Pack](https://kenney.nl/assets/ui-pack)
-  - Ikon nyawa: [25x25 Hearts](https://opengameart.org/content/25x25-hearts) oleh Min
   - Pemain dan musuh: [Kenney Platformer Pack Redux](https://opengameart.org/content/platformer-pack-redux-360-assets)
     dan [Kenney Platformer Art: More Animations & Enemies](https://opengameart.org/content/platformer-art-more-animations-and-enemies)
-  - Musik latar "House In a Forest Loop" oleh [HorrorPen](https://opengameart.org/content/loop-house-in-a-forest) (CC-BY 3.0)
+  - Musik latar bawaan "House In a Forest Loop" oleh [HorrorPen](https://opengameart.org/content/loop-house-in-a-forest) (CC-BY 3.0)
+  - Musik permainan adaptif per tema (`art/audio/music/*.wav`) dibuat dengan skrip generator Python `tools/generate_theme_music.py` (CC0 / Public Domain)
   - Efek suara sintetis wave (`art/audio/*.wav`) dibuat dengan skrip generator Python `tools/generate_wave_sfx.py` (CC0 / Public Domain)
+  - Suara latar / ambience loop sintetis (`art/audio/ambience/*.wav`) dibuat dengan skrip generator Python `tools/generate_ambience.py` (CC0 / Public Domain)
+  - Ikon nyawa pixel-art (`art/hearts/heart_full.png`, `heart_empty.png`) dibuat dengan skrip generator Python `tools/generate_hearts.py` (CC0 / Public Domain)

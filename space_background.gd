@@ -1,5 +1,5 @@
 class_name SpaceBackground
-extends CanvasLayer
+extends BackgroundBase
 # Latar luar angkasa prosedural untuk Dodge 'em All.
 # Menyediakan gradien langit dinamis, nebula shader, 3 layer bintang parallax,
 # planet/bulan jauh, asteroid siluet, event visual acak, dan transisi tema per wave.
@@ -69,7 +69,6 @@ var _asteroid_rot = 0.0
 var _asteroid_vel = Vector2(12.0, 24.0)
 
 # State event visual luar angkasa
-var is_round_active = false
 var _event_timer = 15.0
 var _current_event = "none" # "none", "shooting_stars", "comet", "satellite", "supernova", "mothership"
 var _event_progress = 0.0
@@ -202,6 +201,22 @@ func stop_events():
 	_current_event = "none"
 	if _event_node:
 		_event_node.queue_redraw()
+
+
+func activate():
+	super.activate()
+	for p in _star_layers:
+		if is_instance_valid(p):
+			p.emitting = true
+
+
+func deactivate():
+	super.deactivate()
+	for p in _star_layers:
+		if is_instance_valid(p):
+			p.emitting = false
+	if _theme_tween:
+		_theme_tween.kill()
 
 
 func _reset_event_timer():

@@ -7,7 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://sgfduhhw4pno" path="res://art/House In a Forest Loop.ogg" id="5_55d8h"]
 [ext_resource type="AudioStream" uid="uid://td2mgko63p61" path="res://art/gameover.wav" id="6_hp1r0"]
 [ext_resource type="Script" path="res://wave_manager.gd" id="7_wave"]
-[ext_resource type="PackedScene" path="res://space_background.tscn" id="8_bg"]
+[ext_resource type="Script" path="res://background_manager.gd" id="8_bgm"]
 
 [sub_resource type="Curve2D" id="1"]
 _data = {
@@ -19,7 +19,8 @@ point_count = 5
 script = ExtResource("1_0r6n5")
 mob_scene = ExtResource("2_7mycd")
 
-[node name="SpaceBackground" parent="." unique_id=569320965 instance=ExtResource("8_bg")]
+[node name="BackgroundManager" type="Node" parent="." unique_id=569320965]
+script = ExtResource("8_bgm")
 
 [node name="Player" parent="." unique_id=927660131 instance=ExtResource("3_veqnc")]
 
@@ -44,6 +45,7 @@ curve = SubResource("1")
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=267371681]
 stream = ExtResource("5_55d8h")
+bus = &"Music"
 
 [node name="DeathSound" type="AudioStreamPlayer" parent="." unique_id=1715684712]
 stream = ExtResource("6_hp1r0")
@@ -51,7 +53,7 @@ stream = ExtResource("6_hp1r0")
 [node name="WaveManager" type="Node" parent="." unique_id=741829104]
 script = ExtResource("7_wave")
 
-[connection signal="hit" from="Player" to="." method="_on_player_hit"]
+[connection signal="died" from="Player" to="." method="_on_player_died"]
 [connection signal="timeout" from="MobTimer" to="." method="_on_MobTimer_timeout"]
 [connection signal="timeout" from="ScoreTimer" to="." method="_on_ScoreTimer_timeout"]
 [connection signal="timeout" from="StartTimer" to="." method="_on_StartTimer_timeout"]

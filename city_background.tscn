@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://city_background.gd" id="1_city"]
+
+[node name="CityBackground" type="CanvasLayer"]
+layer = -1
+script = ExtResource("1_city")

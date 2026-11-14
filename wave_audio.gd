@@ -71,6 +71,13 @@ func setup(music_player):
 		_default_music_stream = _music_player.stream
 
 
+# Mengatur musik dasar saat tema berganti agar pitch adaptif tetap bekerja pada musik tema
+func set_default_music_stream(stream: AudioStream) -> void:
+	_default_music_stream = stream
+	if _music_player:
+		_music_player.stream = stream
+
+
 # Dipanggil saat wave dimulai (sebelum musuh muncul).
 func on_wave_started(wave):
 	_current_wave = wave
