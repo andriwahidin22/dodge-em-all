@@ -3,6 +3,7 @@ extends Area2D
 signal hit                   # setiap kali tertabrak musuh (nyawa berkurang 1)
 signal lives_changed(lives)  # jumlah nyawa berubah (tertabrak, ambil item, game baru, hidup lagi)
 signal died                  # nyawa habis -> Main membuka kuis hidup-lagi atau game over
+signal enemy_shot            # peluru pemain mengenai musuh (Main menambah skor)
 
 @export var speed = 400 # How fast the player will move (pixels/sec).
 var screen_size # Size of the game window.
@@ -16,6 +17,29 @@ var lives = 3
 var invincible_time = 0.0              # sisa masa kebal; > 0 berarti sedang kebal
 var _hurt_time = 0.0                   # sisa waktu animasi hit
 
+# Menembak (fitur 7): ketuk dua kali (double tap) di layar untuk menembak ke arah titik ketukan.
+# Hanya bisa saat karakter diam; selama bergerak, double tap diabaikan.
+# Di laptop, double click mouse juga bisa (emulasi sentuh dari mouse aktif).
+@export var bullet_scene: PackedScene
+@export var fire_cooldown = 0.3          # jeda minimum antar tembakan (detik)
+const DOUBLE_TAP_TIME = 300              # jarak waktu maksimum antar ketukan (milidetik)
+const DOUBLE_TAP_DISTANCE = 60.0         # jarak maksimum antar titik ketukan (piksel)
+const MIN_AIM_DISTANCE = 10.0            # ketukan tepat di atas karakter tidak punya arah
+var _fire_cooldown = 0.0
+var _is_moving = false                   # karakter bergerak di frame terakhir?
+var _last_tap_time = -1000000            # waktu ketukan pertama (milidetik), untuk deteksi double tap
+var _last_tap_pos = Vector2.ZERO
+
+# Suara menembak dan musuh kena, dibuat oleh tools/generate_wave_sfx.py.
+# Dimuat seperti di wave_audio.gd: kalau file belum ada, game tetap jalan tanpa suara.
+const PATH_SHOOT_SFX = "res://art/audio/shoot.wav"
+const PATH_ENEMY_HIT_SFX = "res://art/audio/enemy_hit.wav"
+const SHOOT_VOLUME_DB = -8.0      # lebih pelan dari SFX wave karena bisa sering diputar
+const ENEMY_HIT_VOLUME_DB = -4.0
+const SHOOT_PITCH_VARIATION = 0.08  # nada diacak ±8% supaya tembakan beruntun tidak monoton
+var _shoot_player: AudioStreamPlayer
+var _enemy_hit_player: AudioStreamPlayer
+
 # Kontrol sentuh relatif: karakter ikut bergerak sejauh jari digeser,
 # bukan berpindah ke posisi jari. Jadi jari bisa diletakkan di mana saja
 # (misalnya di bawah karakter) dan karakter tetap terlihat.
@@ -25,7 +49,20 @@ var touch_pending = Vector2.ZERO
 
 func _ready():
 	screen_size = get_viewport_rect().size
+	_shoot_player = _create_sfx_player(PATH_SHOOT_SFX, SHOOT_VOLUME_DB)
+	_enemy_hit_player = _create_sfx_player(PATH_ENEMY_HIT_SFX, ENEMY_HIT_VOLUME_DB)
 	hide()
+
+
+# Pemutar SFX non-posisional. max_polyphony 3: suara baru tidak memotong yang masih berbunyi.
+func _create_sfx_player(path: String, volume_db: float) -> AudioStreamPlayer:
+	var sfx = AudioStreamPlayer.new()
+	if ResourceLoader.exists(path):
+		sfx.stream = load(path)
+	sfx.volume_db = volume_db
+	sfx.max_polyphony = 3
+	add_child(sfx)
+	return sfx
 
 
 func _process(delta):
@@ -58,6 +95,51 @@ func _process(delta):
 	position = position.clamp(area.position, area.end)
 
 	_update_animation(velocity)
+	_is_moving = velocity.length() > 1.0
+	if _fire_cooldown > 0:
+		_fire_cooldown -= delta
+
+
+# Ketukan kedua dalam DOUBLE_TAP_TIME dan dekat ketukan pertama = double tap.
+# Ketukan ketiga dihitung sebagai ketukan pertama yang baru.
+func _handle_tap(event: InputEventScreenTouch):
+	var now = Time.get_ticks_msec()
+	var is_double = now - _last_tap_time <= DOUBLE_TAP_TIME \
+			and event.position.distance_to(_last_tap_pos) <= DOUBLE_TAP_DISTANCE
+	if is_double:
+		_last_tap_time = -1000000
+		# make_input_local: titik ketukan relatif terhadap karakter (sudah memperhitungkan skala layar).
+		_try_shoot(make_input_local(event).position)
+	else:
+		_last_tap_time = now
+		_last_tap_pos = event.position
+
+
+# Menembak ke arah `aim` (relatif terhadap karakter), kalau karakter diam dan jeda tembak sudah lewat.
+func _try_shoot(aim: Vector2):
+	if _is_moving or _fire_cooldown > 0 or lives <= 0 or bullet_scene == null:
+		return
+	if aim.length() < MIN_AIM_DISTANCE:
+		return
+	_fire_cooldown = fire_cooldown
+	var bullet = bullet_scene.instantiate()
+	bullet.position = position
+	bullet.direction = aim.normalized()
+	bullet.mob_hit.connect(_on_bullet_hit)
+	get_parent().add_child(bullet)
+	_play_sfx(_shoot_player, randf_range(1.0 - SHOOT_PITCH_VARIATION, 1.0 + SHOOT_PITCH_VARIATION))
+
+
+func _on_bullet_hit():
+	_play_sfx(_enemy_hit_player, randf_range(0.95, 1.05))
+	enemy_shot.emit()
+
+
+func _play_sfx(sfx: AudioStreamPlayer, pitch: float):
+	if sfx.stream == null:
+		return
+	sfx.pitch_scale = pitch
+	sfx.play()
 
 
 func _update_animation(velocity):
@@ -94,10 +176,14 @@ func _unhandled_input(event):
 	# hanya pergeseran jari (InputEventScreenDrag) yang dihitung.
 	if event is InputEventScreenDrag and event.index == 0 and visible:
 		touch_pending += event.relative * touch_sensitivity
+	# Ketukan (jari pertama ditekan) dipakai untuk mendeteksi double tap = menembak.
+	elif event is InputEventScreenTouch and event.index == 0 and event.pressed and visible:
+		_handle_tap(event)
 
 
 func reset_touch():
 	touch_pending = Vector2.ZERO
+	_last_tap_time = -1000000  # ketukan sebelum pause tidak ikut membentuk double tap
 
 
 func _update_invincibility(delta):
@@ -122,6 +208,7 @@ func is_invulnerable() -> bool:
 func start(pos, start_lives = -1):
 	touch_pending = Vector2.ZERO
 	lives = max_lives if start_lives < 1 else mini(start_lives, max_lives)
+	_fire_cooldown = 0.0
 	invincible_time = 0.0
 	_hurt_time = 0.0
 	$AnimatedSprite2D.modulate.a = 1.0
@@ -149,6 +236,9 @@ func revive(pos, revive_lives = 1):
 func _on_body_entered(body):
 	# Sedang kebal atau sudah mati: tabrakan diabaikan.
 	if invincible_time > 0 or lives <= 0:
+		return
+	# Musuh yang sudah kena tembak (sedang memudar) tidak berbahaya.
+	if body is Mob and body.is_dead:
 		return
 	lives -= 1
 	body.queue_free()  # musuh yang menabrak ikut hilang supaya tidak menabrak dua kali

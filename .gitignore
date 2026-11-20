@@ -1,4 +1,4 @@
-# Godot 4
+﻿# Godot 4
 .godot/
 /android/
 *.translation
@@ -9,6 +9,7 @@
 # Logs & build export
 logs/
 export/
+release/
 builds/
 *.exe
 *.pck

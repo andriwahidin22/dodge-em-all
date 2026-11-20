@@ -81,8 +81,6 @@ func set_setting(key: String, value) -> void:
 	var config = _load_config()
 	config.set_value("settings", key, value)
 	config.save(SAVE_PATH)
-
-
 # Memuat isi file yang sudah ada supaya bagian lain (misalnya high score dan progress)
 # tidak ikut terhapus saat satu nilai disimpan. Kalau file belum ada, config kosong.
 func _load_config() -> ConfigFile:

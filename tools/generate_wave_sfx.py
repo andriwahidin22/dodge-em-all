@@ -9,12 +9,17 @@ Menghasilkan 4 efek suara 16-bit mono 44,1 kHz:
 - wave_cleared.wav: Jingle melodi berhasil menyelesaikan wave
 - game_won.wav: Fanfare kemenangan akhir permainan
 
+Ditambah 2 efek suara menembak (fitur 7):
+- shoot.wav: Bunyi "pew" pendek saat pemain menembak
+- enemy_hit.wav: Bunyi "pop" saat peluru mengenai musuh
+
 Skrip ini murni menggunakan modul bawaan Python (wave, math, struct)
 tanpa dependensi eksternal, sehingga portabel di semua platform.
 """
 
 import os
 import math
+import random
 import struct
 import wave
 
@@ -128,6 +133,50 @@ def create_game_won():
 	return samples
 
 
+def create_shoot():
+	"""Bunyi "pew" laser: nada turun cepat 1400Hz -> 350Hz, sekitar 0,12 detik.
+	Sengaja pendek dan tidak terlalu keras karena bisa diputar berkali-kali per detik."""
+	duration = 0.12
+	total_samples = int(SAMPLE_RATE * duration)
+	samples = []
+	phase = 0.0
+	for i in range(total_samples):
+		t = i / SAMPLE_RATE
+		# Sweep eksponensial (terdengar lebih "laser" daripada sweep linear)
+		freq = 1400.0 * math.pow(350.0 / 1400.0, t / duration)
+		phase += 2.0 * math.pi * freq / SAMPLE_RATE
+		# Sine + harmonik ke-3 lemah supaya sedikit "berdesis" seperti gelombang kotak
+		val = 0.8 * math.sin(phase) + 0.2 * math.sin(phase * 3.0)
+		# Envelope: attack 3 ms supaya tidak "klik", lalu decay cepat
+		if t < 0.003:
+			env = t / 0.003
+		else:
+			env = math.exp(-28.0 * (t - 0.003))
+		samples.append(val * env * 0.7)
+	return samples
+
+
+def create_enemy_hit():
+	"""Bunyi "pop" musuh tertembak: semburan noise singkat + dentum nada rendah 260Hz -> 90Hz."""
+	rng = random.Random(7)  # seed tetap supaya hasil file selalu sama setiap dibuat ulang
+	duration = 0.16
+	total_samples = int(SAMPLE_RATE * duration)
+	samples = []
+	phase = 0.0
+	noise = 0.0
+	for i in range(total_samples):
+		t = i / SAMPLE_RATE
+		freq = 260.0 * math.pow(90.0 / 260.0, t / duration)
+		phase += 2.0 * math.pi * freq / SAMPLE_RATE
+		thump = math.sin(phase) * math.exp(-18.0 * t)
+		# Noise disaring low-pass sederhana supaya tidak terlalu tajam di telinga
+		noise += 0.35 * (rng.uniform(-1.0, 1.0) - noise)
+		burst = noise * math.exp(-45.0 * t)
+		attack = min(1.0, t / 0.002)
+		samples.append((0.75 * thump + 0.6 * burst) * attack * 0.85)
+	return samples
+
+
 def main():
 	base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	out_dir = os.path.join(base_dir, "art", "audio")
@@ -137,6 +186,8 @@ def main():
 	write_wav(os.path.join(out_dir, "subwave_start.wav"), create_subwave_start())
 	write_wav(os.path.join(out_dir, "wave_cleared.wav"), create_wave_cleared())
 	write_wav(os.path.join(out_dir, "game_won.wav"), create_game_won())
+	write_wav(os.path.join(out_dir, "shoot.wav"), create_shoot())
+	write_wav(os.path.join(out_dir, "enemy_hit.wav"), create_enemy_hit())
 	print("Semua file audio WAV berhasil dibuat!")
 
 

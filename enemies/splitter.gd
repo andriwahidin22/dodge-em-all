@@ -43,6 +43,15 @@ func _physics_process(delta):
 		_split()
 
 
+# Kena tembak: slime besar langsung pecah (lebih awal dari split_time),
+# slime kecil (can_split = false) mati seperti musuh biasa.
+func take_hit():
+	if can_split and small_scene != null and not is_dead:
+		_split()
+	else:
+		super()
+
+
 func _split():
 	can_split = false
 	for angle in [-split_angle, split_angle]:

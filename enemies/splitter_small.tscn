@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://enemies/splitter.gd" id="2_script"]
 [ext_resource type="Texture2D" path="res://art/enemies/slimeBlue.png" id="3_a"]
 [ext_resource type="Texture2D" path="res://art/enemies/slimeBlue_move.png" id="4_b"]
+[ext_resource type="Texture2D" path="res://art/enemies/slimeBlue_hit.png" id="5_hit"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_splittersmall"]
 animations = [{
@@ -17,6 +18,14 @@ animations = [{
 "loop": true,
 "name": &"move",
 "speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_hit")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 5.0
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_splittersmall"]

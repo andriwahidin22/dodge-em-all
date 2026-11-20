@@ -16,8 +16,10 @@ dengan 3 nyawa, sampai menyelesaikan wave 10. Dibangun dari demo resmi Godot
   kebal sebentar.
 - Saat nyawa terakhir habis, muncul kuis hidup-lagi (sekali per wave). Jawaban benar =
   hidup lagi dengan 1 nyawa, salah = game over.
+- Tembak musuh dengan double tap ke arah yang dituju. Karakter harus diam saat menembak.
+  Slime hijau yang tertembak langsung pecah jadi 2 slime kecil.
 - Ambil item hati yang sesekali muncul untuk menambah nyawa (maksimal 3).
-- Skor: +1 per detik bertahan, ditambah bonus 10 × nomor wave setiap wave selesai.
+- Skor: +1 per detik bertahan, +1 per musuh tertembak, ditambah bonus 10 × nomor wave setiap wave selesai.
 - Selesaikan wave 10 untuk menang. Di akhir setiap wave, pilih lanjut, simpan
   lalu keluar, atau keluar. Simpanan bisa dilanjutkan dari layar judul.
 
@@ -26,6 +28,7 @@ dengan 3 nyawa, sampai menyelesaikan wave 10. Dibangun dari demo resmi Godot
 | Aksi | Keyboard / gamepad | Layar sentuh |
 | --- | --- | --- |
 | Bergerak | WASD, tombol panah, D-pad, stik kiri | Sentuh di mana saja lalu geser; karakter ikut sejauh jari bergeser |
+| Menembak (saat diam) | Double click ke arah tembakan | Double tap ke arah tembakan |
 | Mulai | Enter, Spasi | Tap tombol Start |
 | Pause | Esc, Start (gamepad) | Tombol pause, tombol Back |
 
@@ -45,7 +48,7 @@ Di laptop, kontrol sentuh bisa dicoba dengan klik dan seret mouse.
 | 4 | Jenis musuh berbeda (min. 3 dari 5) | B | Selesai | Kelima jenis sudah ada: Walker, Swimmer, Chaser, Dasher, Splitter |
 | 5 | Wave dan sub-wave, 10 wave | B | Selesai | Termasuk komposisi musuh per sub-wave, batas musuh di layar, debug F2 |
 | 6 | Simpan progress di akhir wave | A + C | Selesai | Layar akhir wave (Lanjut / Simpan & Keluar / Keluar); layar judul menampilkan "Lanjutkan" + "Main Baru" (dengan konfirmasi) bila ada simpanan |
-| 7 | Menembak | A | Ditunda, kalau masih ada waktu | Sprite musuh terkena tembakan (`art/enemies/*_hit.png`) sudah tersedia |
+| 7 | Menembak | A | Selesai | Double tap ke arah tembakan, hanya saat karakter diam; sprite `*_hit` untuk Walker/Chaser/slime kecil, warna merah untuk Swimmer/Dasher; peluru di collision layer 2; SFX `shoot.wav` dan `enemy_hit.wav` dari `tools/generate_wave_sfx.py` |
 | 8 | Latar luar angkasa prosedural & tema visual | – | Selesai | |
 | 9 | Kuis hidup-lagi (1x per wave) & dialog modal | – | Selesai | |
 | 10 | Layar credit | C | Selesai | |

@@ -89,6 +89,11 @@ pause={
 
 pointing/emulate_touch_from_mouse=true
 
+[layer_names]
+
+2d_physics/layer_1="umum"
+2d_physics/layer_2="peluru"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
